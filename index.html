@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prospectadora Inteligente Harina Espiga - Google Maps</title>
+  <script type="text/javascript" src="https://me.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=H64OzzF1cbfppXYYAdsk2Hi9thEX3yM0wacIHvMBEElk7ovUgdcx-a5ocm82FUbzx-ysVM3j-r59dBcJQLkr0Eg5Jbm7eGEQDM0ZtoVxdc_QD33Y-B_l0fVB9vrUedTv_Fatd94woFKtSBx6T3VS9vkEY-EXQeuu2pMcVwJ1jJiqXHRtp57hL27zX1fH9_ttS4BuwS36v3cfWhqqY4YgAZFUKsMWbyXbzBizwU_qXWh1g86qY_1YqQnj9zoB2QY4hn3Br1rd_orGiB2hx-XBGQ" charset="UTF-8"></script><script type="text/javascript" src="https://me.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=Zp7YbeuALk1ftmHPUAebpOIkCbSMNhB4Wz4br-BO15IVhwZ8W9pVhBV95xq758SyDJTrsyHBTX8lfFi90klp6jiVp8A8D8GTohIwNecR-0AEwrXhZfFrT-bJ8QHz3jLMxcOk7Cp7wcHhA5H9Qf72R0B_QRzar3J_ztu0ClBVGs7uBu-EyiAvycgzC2Fr7JDCn2flDUwezKxlFvmkgXEU93kFSlf_uVp6-O-oV7en1SYVraaAFMmCqVU6mR0LM48w7E8fGko3AkSTa75VV6sPTQ" charset="UTF-8"></script><script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #f8fafc;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --green: #16a34a;
+      --red: #dc2626;
+      --yellow: #d97706;
+      --blue: #2563eb;
+      --purple: #7c3aed;
+      --gray: #4b5563;
+      --shadow: 0 8px 22px rgba(0,0,0,.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 18px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 3px 12px rgba(0,0,0,.05);
+    }
+    header h1 { font-size: 22px; margin: 0; }
+    .badge { font-size: 14px; padding: 5px 9px; border-radius: 999px; background: #eef2ff; color: #3730a3; }
+    .app {
+      display: grid;
+      grid-template-columns: 390px minmax(500px, 1fr) 420px;
+      height: calc(100vh - 62px);
+    }
+    aside, .right-panel {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 14px;
+    }
+    .right-panel { border-right: 0; border-left: 1px solid var(--border); }
+    .main {
+      display: grid;
+      grid-template-rows: 58% 42%;
+      min-width: 0;
+    }
+    #map, #pano { width: 100%; height: 100%; }
+    #pano { border-top: 1px solid var(--border); }
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    .card h2 { font-size: 20px; margin: 0 0 10px; }
+    label { display: block; font-weight: 700; margin: 10px 0 6px; font-size: 16px; }
+    input, select, textarea, button {
+      width: 100%;
+      font-size: 17px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 10px;
+      background: #fff;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    button {
+      cursor: pointer;
+      border: none;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    button:hover { background: var(--primary-dark); }
+    button.secondary { background: #374151; }
+    button.green { background: var(--green); }
+    button.red { background: var(--red); }
+    button.yellow { background: var(--yellow); }
+    button.light {
+      background: #e5e7eb;
+      color: #111827;
+      border: 1px solid var(--border);
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .small { font-size: 14px; color: var(--muted); line-height: 1.35; }
+    .status-dot {
+      display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 6px;
+    }
+    .list-item {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #fff;
+    }
+    .list-item strong { display: block; font-size: 17px; }
+    .list-item span { color: var(--muted); font-size: 14px; }
+    .list-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+    .list-actions button { margin: 0; padding: 8px; font-size: 14px; }
+    .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 14px; }
+    .counter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .counter { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 10px; text-align: center; }
+    .counter b { font-size: 24px; display: block; }
+    .api-warning { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; padding: 10px; border-radius: 14px; font-size: 15px; }
+
+    .context-menu {
+      position: fixed;
+      z-index: 9999;
+      width: 400px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 18px 45px rgba(0,0,0,.22);
+      padding: 14px;
+      display: none;
+    }
+    .context-menu h2 { font-size: 20px; margin: 0 0 8px; }
+    .context-menu .menu-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .context-menu .menu-actions button { margin-top: 8px; }
+    .context-menu input[type="color"] { height: 46px; padding: 4px; }
+    .area-tools button { margin-top: 8px; }
+    .area-status {
+      background: #eef2ff;
+      color: #3730a3;
+      border: 1px solid #c7d2fe;
+      padding: 9px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.35;
+      margin-top: 8px;
+    }
+    .color-delete-list { display: grid; gap: 8px; }
+    .color-delete-row {
+      display: grid;
+      grid-template-columns: 22px 1fr 86px;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 8px;
+      background: #fff;
+    }
+    .color-swatch { width: 18px; height: 18px; border-radius: 999px; border: 2px solid #fff; box-shadow: 0 0 0 1px #9ca3af; }
+    .color-delete-row button { margin: 0; padding: 8px; font-size: 14px; }
+    .color-delete-name { font-size: 15px; line-height: 1.2; }
+    .color-delete-name b { display: block; font-size: 16px; }
+
+    .fixed-color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+    .fixed-color-btn {
+      display: flex; align-items: center; gap: 8px; justify-content: flex-start;
+      background: #fff; color: #111827; border: 2px solid var(--border);
+      border-radius: 12px; padding: 9px; margin: 0; font-size: 14px;
+    }
+    .fixed-color-btn:hover { background: #f3f4f6; }
+    .fixed-color-btn.active { border-color: #111827; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+    .fixed-color-dot { width: 18px; height: 18px; border-radius: 999px; border: 2px solid #fff; box-shadow: 0 0 0 1px #9ca3af; flex: 0 0 18px; }
+
+
+
+    @media (max-width: 1200px) {
+      .app { grid-template-columns: 360px 1fr; }
+      .right-panel { display: none; }
+    }
+    @media (max-width: 850px) {
+      .app { grid-template-columns: 1fr; height: auto; }
+      aside { height: auto; }
+      .main { height: 760px; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Prospectadora Inteligente Harina Espiga</h1>
+  <span class="badge" id="systemStatus">Sin cargar Maps</span>
+</header>
+
+<div class="app">
+  <aside>
+    <div class="card">
+      <h2>1) Conectar Google Maps</h2>
+      <div class="api-warning">
+        Pega aquí tu API Key. No se guarda dentro del archivo. Para uso real, restringe la llave por dominio en Google Cloud.
+      </div>
+      <label>API Key de Google Maps</label>
+      <input id="apiKey" type="password" placeholder="AIza..." />
+      <button onclick="loadGoogleMaps()">Cargar mapa con mi API Key</button>
+      <p class="small">Activa en Google Cloud: Maps JavaScript API, Places API, Directions API, Geocoding API y Street View.</p>
+    </div>
+
+    <div class="card">
+      <h2>2) Cargar Excel o CSV</h2>
+      <input id="fileInput" type="file" accept=".xlsx,.xls,.csv" />
+      <p class="small">Columnas recomendadas: nombre, latitud, longitud, direccion, telefono, categoria, estado, notas.</p>
+      <button class="light" onclick="downloadTemplate()">Descargar plantilla CSV</button>
+      <button class="secondary" onclick="clearAllData()">Limpiar todo</button>
+    </div>
+
+    <div class="card">
+      <h2>3) Agregar punto manual</h2>
+      <label>Nombre del negocio</label>
+      <input id="manualName" placeholder="Panadería San José" />
+      <div class="row">
+        <div><label>Latitud</label><input id="manualLat" placeholder="19.4326" /></div>
+        <div><label>Longitud</label><input id="manualLng" placeholder="-99.1332" /></div>
+      </div>
+      <label>Estado</label>
+      <select id="manualStatus">
+        <option value="prospecto">Prospecto</option>
+        <option value="cliente">Cliente</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="revisado">Revisado</option>
+        <option value="descartado">Descartado</option>
+      </select>
+      <button onclick="addManualPoint()">Agregar al mapa</button>
+    </div>
+
+
+    <div class="card">
+      <h2>4) Delimitar zona de búsqueda</h2>
+      <div class="area-tools">
+        <button class="green" onclick="startAreaDrawing()">Dibujar zona en el mapa</button>
+        <button class="yellow" onclick="finishAreaDrawing()">Cerrar / guardar zona</button>
+        <button class="light" onclick="fitToSearchArea()">Ver zona completa</button>
+        <button class="red" onclick="clearSearchArea()">Borrar zona</button>
+        <button class="light" onclick="countPointsOutsideSearchArea()">Contar puntos fuera de mi zona</button>
+        <button class="red" onclick="deletePointsOutsideSearchArea()">Eliminar puntos fuera de mi zona</button>
+      </div>
+      <p class="small">Haz clic sobre el mapa para marcar las esquinas de tu ruta o zona de trabajo. Mínimo 3 puntos. Al terminar, presiona “Cerrar / guardar zona”. Después puedes borrar en un solo clic todos los puntos que hayan quedado fuera.</p>
+      <div class="area-status" id="areaStatus">Sin zona definida. Las búsquedas usarán el centro del mapa.</div>
+    </div>
+
+  </aside>
+
+  <section class="main">
+    <div id="map"></div>
+    <div id="pano"></div>
+  </section>
+
+  <section class="right-panel">
+    <div class="card">
+      <h2>Resumen</h2>
+      <div class="counter-grid">
+        <div class="counter"><b id="totalCount">0</b><span>Total</span></div>
+        <div class="counter"><b id="visibleCount">0</b><span>Visibles</span></div>
+        <div class="counter"><b id="routeKm">0</b><span>km ruta</span></div>
+        <div class="counter"><b id="visitedMeters">0</b><span>m pintados</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Colores</h2>
+      <div class="legend">
+        <div><span class="status-dot" style="background:#2563eb"></span>Prospecto</div>
+        <div><span class="status-dot" style="background:#16a34a"></span>Cliente</div>
+        <div><span class="status-dot" style="background:#d97706"></span>Pendiente</div>
+        <div><span class="status-dot" style="background:#7c3aed"></span>Revisado</div>
+        <div><span class="status-dot" style="background:#dc2626"></span>Descartado</div>
+        <div><span class="status-dot" style="background:#111827"></span>Nuevo detectado</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Eliminar puntos por color</h2>
+      <p class="small">Cada botón borra todos los puntos que tengan ese color. La app te pedirá confirmación antes de eliminar.</p>
+      <div id="colorDeleteButtons" class="color-delete-list"></div>
+      <button class="light" onclick="renderColorDeleteButtons()">Actualizar conteo por color</button>
+    </div>
+
+    <div class="card">
+      <h2>Buscar negocios cerca</h2>
+      <label>Texto de búsqueda</label>
+      <input id="placeQuery" value="panadería" />
+      <label>Radio máximo si no hay zona</label>
+      <input id="searchRadius" value="2500" />
+      <button onclick="searchNearbyPlaces()">Detectar negocios en mi zona</button>
+      <button class="green" onclick="searchBakeryIndustryClients()">Buscar prospectos de harina dentro de mi zona</button>
+      <button class="light" onclick="showOnlyAreaPoints()">Mostrar solo puntos dentro de la zona</button>
+      <p class="small">Si ya dibujaste una zona, la app buscará y conservará resultados únicamente dentro de esa área. El botón verde ejecuta una búsqueda profesional multicategoría: panaderías, pastelerías, reposterías, distribuidores, revendedores, materias primas, pizzerías, botanas, donas, churros, cafeterías y otros negocios que consumen harina.</p>
+    </div>
+
+    <div class="card">
+      <h2>Filtros</h2>
+      <label>Filtrar por estado</label>
+      <select id="statusFilter" onchange="renderMarkers()">
+        <option value="todos">Todos</option>
+        <option value="prospecto">Prospecto</option>
+        <option value="cliente">Cliente</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="revisado">Revisado</option>
+        <option value="descartado">Descartado</option>
+        <option value="detectado">Detectado</option>
+      </select>
+      <label>Buscar por nombre</label>
+      <input id="textFilter" oninput="renderMarkers()" placeholder="Ej. bolillo, panadería..." />
+    </div>
+
+    <div class="card">
+      <h2>Exportar reporte</h2>
+      <button onclick="exportCSV()">Exportar CSV</button>
+      <button onclick="exportJSON()">Exportar JSON</button>
+      <button onclick="saveLocal()">Guardar en navegador</button>
+      <button class="light" onclick="loadLocal()">Cargar guardado</button>
+    </div>
+
+    <div class="card">
+      <h2>Lista de puntos</h2>
+      <div id="pointsList"></div>
+    </div>
+  </section>
+</div>
+
+
+<div class="context-menu" id="pointContextMenu">
+  <h2>Editar punto seleccionado</h2>
+  <p class="small">Este menú aparece con clic derecho sobre un marcador.</p>
+  <input id="ctxPointId" type="hidden" />
+  <label>Nombre</label>
+  <input id="ctxName" />
+  <label>Dirección</label>
+  <input id="ctxAddress" />
+  <label>Teléfono</label>
+  <input id="ctxPhone" />
+  <label>Categoría</label>
+  <input id="ctxCategory" placeholder="Distribuidor, panadería, repostero, materia prima..." />
+  <label>Estado</label>
+  <select id="ctxStatus" onchange="chooseContextStatusColor()">
+    <option value="prospecto">Prospecto</option>
+    <option value="cliente">Cliente</option>
+    <option value="pendiente">Pendiente</option>
+    <option value="revisado">Revisado</option>
+    <option value="descartado">Descartado</option>
+    <option value="detectado">Nuevo detectado</option>
+  </select>
+  <label>Color fijo del punto</label>
+  <input id="ctxColor" type="hidden" value="#2563eb" />
+  <div id="ctxFixedColors" class="fixed-color-grid">
+    <button type="button" class="fixed-color-btn" data-status="prospecto" data-color="#2563eb" onclick="selectContextColor('#2563eb','prospecto')"><span class="fixed-color-dot" style="background:#2563eb"></span>Prospecto</button>
+    <button type="button" class="fixed-color-btn" data-status="cliente" data-color="#16a34a" onclick="selectContextColor('#16a34a','cliente')"><span class="fixed-color-dot" style="background:#16a34a"></span>Cliente</button>
+    <button type="button" class="fixed-color-btn" data-status="pendiente" data-color="#d97706" onclick="selectContextColor('#d97706','pendiente')"><span class="fixed-color-dot" style="background:#d97706"></span>Pendiente</button>
+    <button type="button" class="fixed-color-btn" data-status="revisado" data-color="#7c3aed" onclick="selectContextColor('#7c3aed','revisado')"><span class="fixed-color-dot" style="background:#7c3aed"></span>Revisado</button>
+    <button type="button" class="fixed-color-btn" data-status="descartado" data-color="#dc2626" onclick="selectContextColor('#dc2626','descartado')"><span class="fixed-color-dot" style="background:#dc2626"></span>Descartado</button>
+    <button type="button" class="fixed-color-btn" data-status="detectado" data-color="#111827" onclick="selectContextColor('#111827','detectado')"><span class="fixed-color-dot" style="background:#111827"></span>Nuevo detectado</button>
+  </div>
+  <label>Notas</label>
+  <textarea id="ctxNotes" placeholder="Ej. buen candidato, vende materia prima, visitar lunes, etc."></textarea>
+  <div class="menu-actions">
+    <button class="green" onclick="saveContextPoint()">Guardar cambios</button>
+    <button class="yellow" onclick="keepContextPoint()">Conservar candidato</button>
+    <button onclick="focusContextPoint()">Ver Street View</button>
+    <button class="red" onclick="deleteContextPoint()">Eliminar punto</button>
+    <button class="light" onclick="closeContextMenu()">Cerrar</button>
+    <button class="secondary" onclick="duplicateContextPoint()">Duplicar</button>
+  </div>
+</div>
+
+<script>
+  let map, panorama, directionsService, directionsRenderer, placesService, geocoder;
+  let markers = [];
+  let points = [];
+  let routePolyline = null;
+  let tracking = false;
+  let lastPanoPosition = null;
+  let traveledPolyline = null;
+  let traveledPath = [];
+  let autoTourTimer = null;
+  let autoTourIndex = 0;
+  let areaDrawing = false;
+  let areaVertices = [];
+  let areaTempMarkers = [];
+  let searchAreaPolygon = null;
+  let selectedPointId = null;
+
+  const COLORS = {
+    prospecto: '#2563eb',
+    cliente: '#16a34a',
+    pendiente: '#d97706',
+    revisado: '#7c3aed',
+    descartado: '#dc2626',
+    detectado: '#111827'
+  };
+
+  function setStatus(text) {
+    document.getElementById('systemStatus').textContent = text;
+  }
+
+  function loadGoogleMaps() {
+    const key = document.getElementById('apiKey').value.trim();
+    if (!key) return alert('Primero pega tu API Key de Google Maps.');
+    if (window.google && window.google.maps) return initMap();
+
+    setStatus('Cargando Maps...');
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=places,geometry&callback=initMap&v=weekly&language=es&region=MX`;
+    script.async = true;
+    script.defer = true;
+    script.onerror = () => alert('No se pudo cargar Google Maps. Revisa API Key, facturación, restricciones y APIs habilitadas.');
+    document.head.appendChild(script);
+  }
+
+  window.initMap = function() {
+    const start = { lat: 19.4326, lng: -99.1332 }; // CDMX por defecto
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: start,
+      zoom: 13,
+      mapTypeControl: true,
+      streetViewControl: true,
+      fullscreenControl: true,
+      mapTypeId: 'roadmap'
+    });
+
+    panorama = new google.maps.StreetViewPanorama(document.getElementById('pano'), {
+      position: start,
+      pov: { heading: 0, pitch: 0 },
+      zoom: 1,
+      addressControl: true,
+      linksControl: true,
+      panControl: true,
+      enableCloseButton: false
+    });
+    map.setStreetView(panorama);
+
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({ map, suppressMarkers: false });
+    placesService = new google.maps.places.PlacesService(map);
+    geocoder = new google.maps.Geocoder();
+
+    traveledPolyline = new google.maps.Polyline({
+      map,
+      path: traveledPath,
+      strokeColor: '#16a34a',
+      strokeOpacity: 0.95,
+      strokeWeight: 7
+    });
+
+    map.addListener('click', (event) => {
+      closeContextMenu();
+      if (areaDrawing) {
+        addAreaVertex(event.latLng);
+        return;
+      }
+      const name = prompt('Nombre del punto nuevo:', 'Negocio detectado');
+      if (name) addPoint({ name, lat: event.latLng.lat(), lng: event.latLng.lng(), status: 'detectado', notes: 'Agregado con clic en mapa' });
+    });
+
+    map.addListener('rightclick', (event) => {
+      if (areaDrawing) return;
+      const name = prompt('Nombre del punto nuevo en esta ubicación:', 'Nuevo prospecto');
+      if (name) addPoint({ name, lat: event.latLng.lat(), lng: event.latLng.lng(), status: 'detectado', category: 'prospecto manual', notes: 'Agregado con clic derecho en mapa' });
+    });
+
+    panorama.addListener('position_changed', () => {
+      if (!tracking) return;
+      const pos = panorama.getPosition();
+      if (!pos) return;
+      const current = { lat: pos.lat(), lng: pos.lng() };
+      if (lastPanoPosition) {
+        const distance = google.maps.geometry.spherical.computeDistanceBetween(
+          new google.maps.LatLng(lastPanoPosition.lat, lastPanoPosition.lng),
+          new google.maps.LatLng(current.lat, current.lng)
+        );
+        if (distance > 3 && distance < 120) {
+          traveledPath.push(current);
+          traveledPolyline.setPath(traveledPath);
+          updateStats();
+        }
+      } else {
+        traveledPath.push(current);
+        traveledPolyline.setPath(traveledPath);
+      }
+      lastPanoPosition = current;
+    });
+
+    setStatus('Maps listo');
+    loadLocal(false);
+  };
+
+  document.getElementById('fileInput').addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+    let added = 0;
+
+    rows.forEach((row) => {
+      const obj = normalizeRow(row);
+      if (isFinite(obj.lat) && isFinite(obj.lng)) {
+        addPoint(obj, false);
+        added++;
+      }
+    });
+    renderMarkers();
+    fitToPoints();
+    alert(`Se cargaron ${added} puntos válidos.`);
+  });
+
+
+  // Criterios maestros para prospectar clientes de harina de panificación.
+  // Al oprimir el botón verde, la app ejecuta estas búsquedas una por una,
+  // conserva solo resultados dentro de tu polígono de ruta y evita duplicados.
+  const BAKERY_INDUSTRY_QUERIES = [
+    // Clientes directos de panificación
+    'panadería',
+    'panificadora',
+    'pan artesanal',
+    'panadería mayorista',
+    'panadería industrial',
+    'venta de bolillo',
+    'pan dulce',
+
+    // Pastelería, postres y repostería
+    'pastelería',
+    'repostería',
+    'repostería fina',
+    'mesa de postres',
+    'bizcochería',
+    'galletas',
+    'galletería',
+    'cupcakes',
+    'brownies',
+
+    // Distribución e insumos: máxima prioridad comercial
+    'distribuidor de materias primas para panadería',
+    'materias primas para panadería',
+    'insumos para panadería',
+    'proveedor para panaderías',
+    'abarrotes para panadería',
+    'venta de harina',
+    'distribuidora de harina',
+    'harina para panadería',
+    'productos para repostería',
+    'insumos para repostería',
+    'revendedor de huevo',
+    'venta de huevo mayoreo',
+
+    // Negocios que transforman harina
+    'pizzería',
+    'pizza artesanal',
+    'donas',
+    'donería',
+    'churrería',
+    'crepería',
+    'waffles',
+    'hotcakes',
+    'cafetería panadería',
+    'cafetería con pan',
+    'hamburguesería pan brioche',
+
+    // Industria botanas y alimentos preparados
+    'botanas',
+    'frituras',
+    'cacahuate japonés',
+    'chicharrón de harina',
+    'empanizador',
+    'maquila de alimentos',
+    'pan congelado',
+    'comedores industriales',
+    'dark kitchen'
+  ];
+
+  function getBakerySearchContext() {
+    const hasArea = !!(searchAreaPolygon && areaVertices.length >= 3);
+    const center = hasArea ? getSearchAreaBounds().getCenter() : map.getCenter();
+    let radius = parseFloat(document.getElementById('searchRadius')?.value || '2500');
+    if (!isFinite(radius) || radius < 100) radius = 2500;
+
+    if (hasArea) {
+      const bounds = getSearchAreaBounds();
+      const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
+      radius = Math.min(50000, Math.max(
+        distanceMetersBetween(center, ne),
+        distanceMetersBetween(center, sw),
+        radius
+      ));
+    }
+    return { hasArea, center, radius };
+  }
+
+  function placeAlreadyExists(lat, lng, name = '') {
+    const cleanName = String(name || '').toLowerCase().trim();
+    return points.some(p => {
+      const close = Math.abs(p.lat - lat) < 0.00005 && Math.abs(p.lng - lng) < 0.00005;
+      const sameName = cleanName && String(p.name || '').toLowerCase().trim() === cleanName;
+      return close || (sameName && Math.abs(p.lat - lat) < 0.001 && Math.abs(p.lng - lng) < 0.001);
+    });
+  }
+
+  function classifyBakeryProspect(query, placeName = '') {
+    const text = `${query} ${placeName}`.toLowerCase();
+    if (text.includes('distrib') || text.includes('materias primas') || text.includes('insumos') || text.includes('proveedor') || text.includes('abarrotes') || text.includes('huevo') || text.includes('mayoreo')) {
+      return { category: 'Distribuidor / Materias primas', priority: 'AAAAA', color: '#7c3aed' };
+    }
+    if (text.includes('botana') || text.includes('fritura') || text.includes('cacahuate') || text.includes('chicharrón') || text.includes('empanizador') || text.includes('maquila') || text.includes('industrial') || text.includes('congelado')) {
+      return { category: 'Industria alimenticia / botanas', priority: 'AAAA', color: '#dc2626' };
+    }
+    if (text.includes('panader') || text.includes('panific') || text.includes('bolillo') || text.includes('pan dulce')) {
+      return { category: 'Panadería / Panificadora', priority: 'AAA', color: '#2563eb' };
+    }
+    if (text.includes('pastel') || text.includes('reposter') || text.includes('postre') || text.includes('galleta') || text.includes('cupcake') || text.includes('brownie') || text.includes('bizco')) {
+      return { category: 'Pastelería / Repostería', priority: 'AAA', color: '#16a34a' };
+    }
+    if (text.includes('pizza') || text.includes('dona') || text.includes('churro') || text.includes('crepa') || text.includes('waffle') || text.includes('hotcake') || text.includes('cafeter') || text.includes('hamburg')) {
+      return { category: 'Transformador de harina', priority: 'AA', color: '#d97706' };
+    }
+    return { category: 'Prospecto relacionado con harina', priority: 'A', color: '#111827' };
+  }
+
+  function textSearchPromise(query, context) {
+    return new Promise(resolve => {
+      placesService.textSearch({ query, location: context.center, radius: context.radius }, (results, status) => {
+        if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
+          resolve({ query, added: 0, outside: 0, duplicates: 0, found: 0 });
+          return;
+        }
+        let added = 0;
+        let outside = 0;
+        let duplicates = 0;
+
+        results.forEach(place => {
+          if (!place.geometry || !place.geometry.location) return;
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          if (context.hasArea && !isPointInsideSearchArea(lat, lng)) { outside++; return; }
+          if (placeAlreadyExists(lat, lng, place.name)) { duplicates++; return; }
+
+          const cls = classifyBakeryProspect(query, place.name || '');
+          addPoint({
+            name: place.name || query,
+            lat,
+            lng,
+            address: place.formatted_address || '',
+            category: cls.category,
+            status: 'detectado',
+            customColor: cls.color,
+            notes: (context.hasArea
+              ? 'Detectado con búsqueda automática de prospectos de harina dentro de zona delimitada'
+              : 'Detectado con búsqueda automática de prospectos de harina') +
+              `\nCriterio usado: ${query}\nPrioridad sugerida: ${cls.priority}`
+          }, false);
+          added++;
+        });
+        resolve({ query, added, outside, duplicates, found: results.length });
+      });
+    });
+  }
+
+  async function searchBakeryIndustryClients() {
+    if (!placesService || !map) return alert('Primero carga Google Maps.');
+    const context = getBakerySearchContext();
+    const areaMsg = context.hasArea
+      ? 'La búsqueda se limitará a tu zona delimitada.'
+      : 'No hay zona delimitada; se usará el centro del mapa y el radio indicado.';
+
+    if (!confirm(`Buscar prospectos de harina dentro de mi zona.\n\nSe harán ${BAKERY_INDUSTRY_QUERIES.length} búsquedas diferentes.\n${areaMsg}\n\n¿Continuar?`)) return;
+
+    setStatus('Búsqueda masiva panificación...');
+    let totalAdded = 0;
+    let totalOutside = 0;
+    let totalDuplicates = 0;
+    let totalFound = 0;
+    const details = [];
+
+    for (let i = 0; i < BAKERY_INDUSTRY_QUERIES.length; i++) {
+      const query = BAKERY_INDUSTRY_QUERIES[i];
+      setStatus(`Buscando ${i + 1}/${BAKERY_INDUSTRY_QUERIES.length}: ${query}`);
+      const result = await textSearchPromise(query, context);
+      totalAdded += result.added;
+      totalOutside += result.outside;
+      totalDuplicates += result.duplicates;
+      totalFound += result.found;
+      details.push(`${query}: +${result.added}`);
+      await new Promise(r => setTimeout(r, 900));
+    }
+
+    renderMarkers();
+    saveLocal(false);
+    setStatus('Maps listo');
+    alert(
+      `Búsqueda masiva terminada.\n\n` +
+      `Resultados encontrados por Google: ${totalFound}\n` +
+      `Puntos nuevos agregados: ${totalAdded}\n` +
+      `Duplicados omitidos: ${totalDuplicates}\n` +
+      `Fuera de tu zona descartados: ${totalOutside}\n\n` +
+      `Detalle por búsqueda:\n${details.join('\n')}`
+    );
+  }
+  function normalizeRow(row) {
+    const lower = {};
+    Object.keys(row).forEach(k => lower[k.toString().trim().toLowerCase()] = row[k]);
+    const lat = parseFloat(lower.latitud || lower.latitude || lower.lat || lower.y);
+    const lng = parseFloat(lower.longitud || lower.longitude || lower.lng || lower.lon || lower.x);
+    return {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+      name: String(lower.nombre || lower.name || lower.negocio || lower.cliente || 'Sin nombre'),
+      lat,
+      lng,
+      address: String(lower.direccion || lower.dirección || lower.address || ''),
+      phone: String(lower.telefono || lower.teléfono || lower.phone || ''),
+      category: String(lower.categoria || lower.categoría || lower.category || 'panadería'),
+      status: String(lower.estado || lower.status || 'prospecto').toLowerCase(),
+      notes: String(lower.notas || lower.notes || '')
+    };
+  }
+
+  function addManualPoint() {
+    const name = document.getElementById('manualName').value.trim() || 'Punto manual';
+    const lat = parseFloat(document.getElementById('manualLat').value);
+    const lng = parseFloat(document.getElementById('manualLng').value);
+    const status = document.getElementById('manualStatus').value;
+    if (!isFinite(lat) || !isFinite(lng)) return alert('Latitud y longitud deben ser números válidos.');
+    addPoint({ name, lat, lng, status, category: 'panadería', notes: 'Agregado manualmente' });
+    map.panTo({ lat, lng });
+    panorama.setPosition({ lat, lng });
+  }
+
+  function addPoint(p, rerender = true) {
+    const clean = {
+      id: p.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())),
+      name: p.name || 'Sin nombre',
+      lat: Number(p.lat),
+      lng: Number(p.lng),
+      address: p.address || '',
+      phone: p.phone || '',
+      category: p.category || 'panadería',
+      status: COLORS[p.status] ? p.status : 'prospecto',
+      notes: p.notes || ''
+    };
+    points.push(clean);
+    if (rerender) renderMarkers();
+  }
+
+  function renderMarkers() {
+    if (!map) return;
+    markers.forEach(m => m.setMap(null));
+    markers = [];
+    const statusFilter = document.getElementById('statusFilter').value;
+    const textFilter = document.getElementById('textFilter').value.toLowerCase().trim();
+
+    getVisiblePoints().forEach((p) => {
+      const marker = new google.maps.Marker({
+        map,
+        position: { lat: p.lat, lng: p.lng },
+        title: p.name,
+        icon: makePin(COLORS[p.status] || COLORS.prospecto)
+      });
+      const info = new google.maps.InfoWindow({
+        content: `
+          <div style="font-size:16px;max-width:280px">
+            <b>${escapeHtml(p.name)}</b><br>
+            Estado: ${escapeHtml(p.status)}<br>
+            Categoría: ${escapeHtml(p.category || '')}<br>
+            ${p.address ? 'Dirección: ' + escapeHtml(p.address) + '<br>' : ''}
+            ${p.phone ? 'Tel: ' + escapeHtml(p.phone) + '<br>' : ''}
+            <button onclick="focusPoint('${p.id}')" style="padding:8px;margin-top:8px">Ver en Street View</button>
+          </div>`
+      });
+      marker.addListener('click', () => {
+        info.open(map, marker);
+        panorama.setPosition({ lat: p.lat, lng: p.lng });
+      });
+      markers.push(marker);
+    });
+    renderList();
+    updateStats();
+    renderColorDeleteButtons();
+  }
+
+  function getVisiblePoints() {
+    const statusFilter = document.getElementById('statusFilter')?.value || 'todos';
+    const textFilter = document.getElementById('textFilter')?.value.toLowerCase().trim() || '';
+    return points.filter(p => {
+      const okStatus = statusFilter === 'todos' || p.status === statusFilter;
+      const hay = `${p.name} ${p.address} ${p.category} ${p.notes}`.toLowerCase();
+      return okStatus && (!textFilter || hay.includes(textFilter));
+    });
+  }
+
+  function makePin(color) {
+    return {
+      path: google.maps.SymbolPath.CIRCLE,
+      fillColor: color,
+      fillOpacity: 1,
+      strokeColor: '#ffffff',
+      strokeWeight: 3,
+      scale: 10
+    };
+  }
+
+  function renderList() {
+    const list = document.getElementById('pointsList');
+    const visible = getVisiblePoints();
+    list.innerHTML = visible.slice(0, 120).map(p => `
+      <div class="list-item">
+        <strong><span class="status-dot" style="background:${pointColor(p)}"></span>${escapeHtml(p.name)}</strong>
+        <span>${p.lat.toFixed(5)}, ${p.lng.toFixed(5)} · ${escapeHtml(p.status)}</span>
+        <div class="list-actions">
+          <button onclick="focusPoint('${p.id}')">Ver</button>
+          <button class="light" onclick="editStatus('${p.id}')">Estado</button>
+        </div>
+      </div>`).join('') || '<p class="small">No hay puntos todavía.</p>';
+  }
+
+  function focusPoint(id) {
+    const p = points.find(x => x.id === id);
+    if (!p || !map) return;
+    map.panTo({ lat: p.lat, lng: p.lng });
+    map.setZoom(17);
+    panorama.setPosition({ lat: p.lat, lng: p.lng });
+  }
+
+  function editStatus(id) {
+    const p = points.find(x => x.id === id);
+    if (!p) return;
+    const next = prompt('Nuevo estado: prospecto, cliente, pendiente, revisado, descartado, detectado', p.status);
+    if (!next) return;
+    const clean = next.toLowerCase().trim();
+    if (!COLORS[clean]) return alert('Estado no válido.');
+    p.status = clean;
+    renderMarkers();
+  }
+
+  function fitToPoints() {
+    if (!map || !points.length) return;
+    const bounds = new google.maps.LatLngBounds();
+    points.forEach(p => bounds.extend({ lat: p.lat, lng: p.lng }));
+    map.fitBounds(bounds);
+  }
+
+  function toggleTracking() {
+    if (!map) return alert('Primero carga Google Maps.');
+    tracking = !tracking;
+    document.getElementById('trackBtn').textContent = tracking ? 'Detener pintado del recorrido' : 'Iniciar pintado del recorrido';
+    if (tracking) {
+      const pos = panorama.getPosition();
+      lastPanoPosition = pos ? { lat: pos.lat(), lng: pos.lng() } : null;
+      setStatus('Pintando recorrido');
+    } else {
+      setStatus('Maps listo');
+    }
+  }
+
+  function markCurrentStreetViewPoint() {
+    if (!panorama) return alert('Primero carga Google Maps.');
+    const pos = panorama.getPosition();
+    if (!pos) return alert('No hay posición actual en Street View.');
+    const name = prompt('Nombre para este punto:', 'Punto revisado en Street View') || 'Punto revisado';
+    addPoint({ name, lat: pos.lat(), lng: pos.lng(), status: 'revisado', notes: 'Guardado desde Street View' });
+  }
+
+  function clearRouteLines() {
+    traveledPath = [];
+    if (traveledPolyline) traveledPolyline.setPath(traveledPath);
+    if (directionsRenderer) directionsRenderer.set('directions', null);
+    document.getElementById('routeKm').textContent = '0';
+    updateStats();
+  }
+
+  function buildRouteFromVisiblePoints() {
+    const visible = getVisiblePoints();
+    if (!directionsService || visible.length < 2) return alert('Necesitas al menos 2 puntos visibles y Maps cargado.');
+    const selected = visible.slice(0, 25); // Directions API tiene límite práctico de waypoints
+    const origin = { lat: selected[0].lat, lng: selected[0].lng };
+    const destination = { lat: selected[selected.length - 1].lat, lng: selected[selected.length - 1].lng };
+    const waypoints = selected.slice(1, -1).map(p => ({ location: { lat: p.lat, lng: p.lng }, stopover: true }));
+    directionsService.route({
+      origin,
+      destination,
+      waypoints,
+      optimizeWaypoints: true,
+      travelMode: google.maps.TravelMode.DRIVING,
+      drivingOptions: { departureTime: new Date(), trafficModel: google.maps.TrafficModel.BEST_GUESS }
+    }, (result, status) => {
+      if (status !== 'OK') return alert('No se pudo crear la ruta: ' + status);
+      directionsRenderer.setDirections(result);
+      let meters = 0;
+      result.routes[0].legs.forEach(leg => meters += leg.distance.value);
+      document.getElementById('routeKm').textContent = (meters / 1000).toFixed(1);
+    });
+  }
+
+  function startAutoTour() {
+    const visible = getVisiblePoints();
+    if (!visible.length || !panorama) return alert('Carga puntos y Google Maps primero.');
+    stopAutoTour();
+    autoTourIndex = 0;
+    setStatus('Recorrido automático');
+    autoTourTimer = setInterval(() => {
+      const p = visible[autoTourIndex % visible.length];
+      focusPoint(p.id);
+      autoTourIndex++;
+    }, 4500);
+  }
+
+  function stopAutoTour() {
+    if (autoTourTimer) clearInterval(autoTourTimer);
+    autoTourTimer = null;
+    setStatus(map ? 'Maps listo' : 'Sin cargar Maps');
+  }
+
+  function searchNearbyPlaces() {
+    if (!placesService || !map) return alert('Primero carga Google Maps.');
+    const query = document.getElementById('placeQuery').value.trim() || 'panadería';
+    placesService.textSearch({
+      query,
+      location: map.getCenter(),
+      radius: 2500
+    }, (results, status) => {
+      if (status !== google.maps.places.PlacesServiceStatus.OK || !results) return alert('No se encontraron negocios o Places API no está habilitada.');
+      let added = 0;
+      results.slice(0, 20).forEach(place => {
+        if (!place.geometry || !place.geometry.location) return;
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        const exists = points.some(p => Math.abs(p.lat - lat) < 0.00005 && Math.abs(p.lng - lng) < 0.00005);
+        if (!exists) {
+          addPoint({
+            name: place.name || query,
+            lat,
+            lng,
+            address: place.formatted_address || '',
+            category: query,
+            status: 'detectado',
+            notes: 'Detectado con Places API'
+          }, false);
+          added++;
+        }
+      });
+      renderMarkers();
+      alert(`Se agregaron ${added} negocios detectados.`);
+    });
+  }
+
+  function saveLocal(showAlert = true) {
+    localStorage.setItem('gmapsExplorerPoints', JSON.stringify(points));
+    localStorage.setItem('gmapsExplorerTraveledPath', JSON.stringify(traveledPath));
+    if (showAlert) alert('Datos guardados en este navegador.');
+  }
+
+  function loadLocal(showAlert = true) {
+    const raw = localStorage.getItem('gmapsExplorerPoints');
+    const rawPath = localStorage.getItem('gmapsExplorerTraveledPath');
+    if (raw) {
+      points = JSON.parse(raw);
+      renderMarkers();
+      fitToPoints();
+    }
+    if (rawPath && traveledPolyline) {
+      traveledPath = JSON.parse(rawPath);
+      traveledPolyline.setPath(traveledPath);
+    }
+    updateStats();
+    if (showAlert) alert('Datos cargados del navegador.');
+  }
+
+  function clearAllData() {
+    if (!confirm('¿Seguro que quieres borrar puntos, rutas y guardado local?')) return;
+    points = [];
+    traveledPath = [];
+    localStorage.removeItem('gmapsExplorerPoints');
+    localStorage.removeItem('gmapsExplorerTraveledPath');
+    renderMarkers();
+    clearRouteLines();
+  }
+
+  function exportCSV() {
+    const headers = ['nombre','latitud','longitud','direccion','telefono','categoria','estado','notas'];
+    const rows = points.map(p => [p.name,p.lat,p.lng,p.address,p.phone,p.category,p.status,p.notes]);
+    const csv = [headers, ...rows].map(r => r.map(csvCell).join(',')).join('\n');
+    downloadBlob(csv, 'reporte_puntos_google_maps.csv', 'text/csv;charset=utf-8');
+  }
+
+  function exportJSON() {
+    downloadBlob(JSON.stringify({ points, traveledPath }, null, 2), 'reporte_puntos_google_maps.json', 'application/json');
+  }
+
+  function downloadTemplate() {
+    const csv = 'nombre,latitud,longitud,direccion,telefono,categoria,estado,notas\nPanadería Ejemplo,19.4326,-99.1332,Centro CDMX,,panadería,prospecto,Ejemplo de carga\n';
+    downloadBlob(csv, 'plantilla_panaderias.csv', 'text/csv;charset=utf-8');
+  }
+
+  function downloadBlob(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function updateStats() {
+    document.getElementById('totalCount').textContent = points.length;
+    document.getElementById('visibleCount').textContent = getVisiblePoints().length;
+    let meters = 0;
+    if (window.google && google.maps && google.maps.geometry && traveledPath.length > 1) {
+      for (let i = 1; i < traveledPath.length; i++) {
+        meters += google.maps.geometry.spherical.computeDistanceBetween(
+          new google.maps.LatLng(traveledPath[i-1].lat, traveledPath[i-1].lng),
+          new google.maps.LatLng(traveledPath[i].lat, traveledPath[i].lng)
+        );
+      }
+    }
+    document.getElementById('visitedMeters').textContent = Math.round(meters);
+  }
+
+  function csvCell(v) {
+    const s = String(v ?? '');
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  }
+
+  function pointColor(p) {
+    return p.customColor || COLORS[p.status] || COLORS.prospecto;
+  }
+
+  function startAreaDrawing() {
+    if (!map) return alert('Primero carga Google Maps.');
+    clearSearchArea(false);
+    areaDrawing = true;
+    areaVertices = [];
+    setStatus('Dibujando zona');
+    updateAreaStatus('Dibujo activo: haz clic en cada esquina de tu zona. Cuando termines, presiona “Cerrar / guardar zona”.');
+  }
+
+  function addAreaVertex(latLng) {
+    areaVertices.push(latLng);
+    const marker = new google.maps.Marker({
+      map,
+      position: latLng,
+      label: String(areaVertices.length),
+      icon: makePin('#111827')
+    });
+    areaTempMarkers.push(marker);
+    drawSearchAreaPreview();
+    updateAreaStatus(`Puntos de zona marcados: ${areaVertices.length}. Mínimo 3 para guardar.`);
+  }
+
+  function drawSearchAreaPreview() {
+    if (searchAreaPolygon) searchAreaPolygon.setMap(null);
+    searchAreaPolygon = new google.maps.Polygon({
+      map,
+      paths: areaVertices,
+      strokeColor: '#2563eb',
+      strokeOpacity: 0.95,
+      strokeWeight: 3,
+      fillColor: '#2563eb',
+      fillOpacity: 0.12,
+      clickable: false
+    });
+  }
+
+  function finishAreaDrawing() {
+    if (!map) return alert('Primero carga Google Maps.');
+    if (areaVertices.length < 3) return alert('Marca mínimo 3 puntos para cerrar una zona.');
+    areaDrawing = false;
+    areaTempMarkers.forEach(m => m.setMap(null));
+    areaTempMarkers = [];
+    drawSearchAreaPreview();
+    fitToSearchArea();
+    setStatus('Zona lista');
+    updateAreaStatus(`Zona guardada con ${areaVertices.length} vértices. Las búsquedas se filtrarán dentro de esta área.`);
+    renderMarkers();
+  }
+
+  function clearSearchArea(showAlert = true) {
+    areaDrawing = false;
+    areaVertices = [];
+    areaTempMarkers.forEach(m => m.setMap(null));
+    areaTempMarkers = [];
+    if (searchAreaPolygon) searchAreaPolygon.setMap(null);
+    searchAreaPolygon = null;
+    updateAreaStatus('Sin zona definida. Las búsquedas usarán el centro del mapa.');
+    setStatus(map ? 'Maps listo' : 'Sin cargar Maps');
+    renderMarkers();
+    if (showAlert) alert('Zona de búsqueda borrada.');
+  }
+
+  function updateAreaStatus(text) {
+    const el = document.getElementById('areaStatus');
+    if (el) el.textContent = text;
+  }
+
+  function fitToSearchArea() {
+    if (!map || !areaVertices.length) return alert('Todavía no hay zona dibujada.');
+    const bounds = new google.maps.LatLngBounds();
+    areaVertices.forEach(v => bounds.extend(v));
+    map.fitBounds(bounds);
+  }
+
+  function getSearchAreaBounds() {
+    const bounds = new google.maps.LatLngBounds();
+    areaVertices.forEach(v => bounds.extend(v));
+    return bounds;
+  }
+
+  function isPointInsideSearchArea(lat, lng) {
+    if (!searchAreaPolygon || !areaVertices.length || !(window.google && google.maps.geometry)) return true;
+    return google.maps.geometry.poly.containsLocation(new google.maps.LatLng(lat, lng), searchAreaPolygon);
+  }
+
+  function distanceMetersBetween(a, b) {
+    return google.maps.geometry.spherical.computeDistanceBetween(a, b);
+  }
+
+  function showOnlyAreaPoints() {
+    if (!searchAreaPolygon) return alert('Primero dibuja y guarda una zona.');
+    document.getElementById('textFilter').value = '';
+    renderMarkers(true);
+  }
+
+  function renderMarkers(onlyArea = false) {
+    if (!map) return;
+    markers.forEach(m => m.setMap(null));
+    markers = [];
+    const visible = getVisiblePoints().filter(p => !onlyArea || isPointInsideSearchArea(p.lat, p.lng));
+
+    visible.forEach((p) => {
+      const marker = new google.maps.Marker({
+        map,
+        position: { lat: p.lat, lng: p.lng },
+        title: p.name,
+        icon: makePin(pointColor(p))
+      });
+      const info = new google.maps.InfoWindow({
+        content: `
+          <div style="font-size:16px;max-width:300px">
+            <b>${escapeHtml(p.name)}</b><br>
+            Estado: ${escapeHtml(p.status)}<br>
+            Categoría: ${escapeHtml(p.category || '')}<br>
+            ${p.address ? 'Dirección: ' + escapeHtml(p.address) + '<br>' : ''}
+            ${p.phone ? 'Tel: ' + escapeHtml(p.phone) + '<br>' : ''}
+            <p style="margin:6px 0;color:#555">Clic derecho sobre el marcador para editar, conservar o eliminar.</p>
+            <button onclick="focusPoint('${p.id}')" style="padding:8px;margin-top:8px">Ver en Street View</button>
+          </div>`
+      });
+      marker.addListener('click', () => {
+        info.open(map, marker);
+        panorama.setPosition({ lat: p.lat, lng: p.lng });
+      });
+      marker.addListener('rightclick', (event) => openContextMenu(p.id, event.domEvent));
+      markers.push(marker);
+    });
+    renderList();
+    updateStats();
+    renderColorDeleteButtons();
+  }
+
+  function normalizeHexColor(color) {
+    const s = String(color || '').trim().toLowerCase();
+    if (/^#[0-9a-f]{6}$/.test(s)) return s;
+    return COLORS.prospecto.toLowerCase();
+  }
+
+  function getColorLabel(color) {
+    const clean = normalizeHexColor(color);
+    const labels = {
+      '#2563eb': 'Azul / Panadería / Prospecto',
+      '#16a34a': 'Verde / Pastelería / Cliente',
+      '#d97706': 'Naranja / Transformador / Pendiente',
+      '#7c3aed': 'Morado / Distribuidor / Revisado',
+      '#dc2626': 'Rojo / Botanas / Descartado',
+      '#111827': 'Negro / Detectado / Sin clasificar'
+    };
+    return labels[clean] || `Color personalizado ${clean}`;
+  }
+
+  function getPointsByColor() {
+    const groups = {};
+    points.forEach(p => {
+      const color = normalizeHexColor(pointColor(p));
+      if (!groups[color]) groups[color] = [];
+      groups[color].push(p);
+    });
+    return groups;
+  }
+
+  function renderColorDeleteButtons() {
+    const panel = document.getElementById('colorDeleteButtons');
+    if (!panel) return;
+    const groups = getPointsByColor();
+    const colors = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
+    if (!colors.length) {
+      panel.innerHTML = '<p class="small">Todavía no hay puntos cargados.</p>';
+      return;
+    }
+    panel.innerHTML = colors.map(color => {
+      const count = groups[color].length;
+      return `
+        <div class="color-delete-row">
+          <span class="color-swatch" style="background:${color}"></span>
+          <span class="color-delete-name"><b>${escapeHtml(getColorLabel(color))}</b>${count} punto${count === 1 ? '' : 's'}</span>
+          <button class="red" onclick="deletePointsByColor('${color}')">Eliminar</button>
+        </div>`;
+    }).join('');
+  }
+
+  function deletePointsByColor(color) {
+    const clean = normalizeHexColor(color);
+    const selected = points.filter(p => normalizeHexColor(pointColor(p)) === clean);
+    if (!selected.length) return alert('No hay puntos con ese color.');
+    const sample = selected.slice(0, 8).map(p => '• ' + p.name).join('\n');
+    const extra = selected.length > 8 ? `\n...y ${selected.length - 8} más.` : '';
+    if (!confirm(`Vas a eliminar ${selected.length} punto(s) del color ${clean}.\n\n${getColorLabel(clean)}\n\nEjemplos:\n${sample}${extra}\n\n¿Confirmas que deseas borrarlos?`)) return;
+    points = points.filter(p => normalizeHexColor(pointColor(p)) !== clean);
+    renderMarkers();
+    saveLocal(false);
+    alert(`Listo. Se eliminaron ${selected.length} punto(s) del color ${clean}.`);
+  }
+
+  function colorToStatus(color) {
+    const clean = normalizeHexColor(color);
+    const mapColor = {
+      '#2563eb': 'prospecto',
+      '#16a34a': 'cliente',
+      '#d97706': 'pendiente',
+      '#7c3aed': 'revisado',
+      '#dc2626': 'descartado',
+      '#111827': 'detectado'
+    };
+    return mapColor[clean] || 'prospecto';
+  }
+
+  function selectContextColor(color, status) {
+    const clean = normalizeHexColor(color);
+    const finalStatus = status || colorToStatus(clean);
+    document.getElementById('ctxColor').value = clean;
+    document.getElementById('ctxStatus').value = finalStatus;
+    updateContextColorButtons(clean);
+  }
+
+  function chooseContextStatusColor() {
+    const status = document.getElementById('ctxStatus').value;
+    selectContextColor(COLORS[status] || COLORS.prospecto, status);
+  }
+
+  function updateContextColorButtons(color) {
+    const clean = normalizeHexColor(color);
+    document.querySelectorAll('#ctxFixedColors .fixed-color-btn').forEach(btn => {
+      const btnColor = normalizeHexColor(btn.dataset.color);
+      btn.classList.toggle('active', btnColor === clean);
+    });
+  }
+
+  function openContextMenu(id, domEvent) {
+    const p = points.find(x => x.id === id);
+    if (!p) return;
+    selectedPointId = id;
+    document.getElementById('ctxPointId').value = id;
+    document.getElementById('ctxName').value = p.name || '';
+    document.getElementById('ctxAddress').value = p.address || '';
+    document.getElementById('ctxPhone').value = p.phone || '';
+    document.getElementById('ctxCategory').value = p.category || '';
+    document.getElementById('ctxStatus').value = p.status || 'prospecto';
+    selectContextColor(pointColor(p), p.status || colorToStatus(pointColor(p)));
+    document.getElementById('ctxNotes').value = p.notes || '';
+    const menu = document.getElementById('pointContextMenu');
+    const x = Math.min((domEvent?.clientX || 80), window.innerWidth - 420);
+    const y = Math.min((domEvent?.clientY || 80), window.innerHeight - 520);
+    menu.style.left = Math.max(12, x) + 'px';
+    menu.style.top = Math.max(12, y) + 'px';
+    menu.style.display = 'block';
+  }
+
+  function closeContextMenu() {
+    const menu = document.getElementById('pointContextMenu');
+    if (menu) menu.style.display = 'none';
+  }
+
+  function saveContextPoint() {
+    const id = document.getElementById('ctxPointId').value;
+    const p = points.find(x => x.id === id);
+    if (!p) return;
+    p.name = document.getElementById('ctxName').value.trim() || 'Sin nombre';
+    p.address = document.getElementById('ctxAddress').value.trim();
+    p.phone = document.getElementById('ctxPhone').value.trim();
+    p.category = document.getElementById('ctxCategory').value.trim() || 'sin categoría';
+    p.status = document.getElementById('ctxStatus').value;
+    p.customColor = normalizeHexColor(document.getElementById('ctxColor').value);
+    p.notes = document.getElementById('ctxNotes').value.trim();
+    renderMarkers();
+    saveLocal(false);
+    closeContextMenu();
+  }
+
+  function keepContextPoint() {
+    document.getElementById('ctxStatus').value = 'prospecto';
+    const cat = document.getElementById('ctxCategory');
+    if (!cat.value.trim()) cat.value = 'candidato confirmado';
+    const notes = document.getElementById('ctxNotes');
+    notes.value = (notes.value ? notes.value + '\n' : '') + 'Conservado como candidato por revisión manual.';
+    saveContextPoint();
+  }
+
+  function deleteContextPoint() {
+    const id = document.getElementById('ctxPointId').value;
+    const p = points.find(x => x.id === id);
+    if (!p) return;
+    if (!confirm(`¿Eliminar definitivamente este punto?\n\n${p.name}`)) return;
+    points = points.filter(x => x.id !== id);
+    renderMarkers();
+    saveLocal(false);
+    closeContextMenu();
+  }
+
+  function focusContextPoint() {
+    const id = document.getElementById('ctxPointId').value;
+    focusPoint(id);
+  }
+
+  function duplicateContextPoint() {
+    const id = document.getElementById('ctxPointId').value;
+    const p = points.find(x => x.id === id);
+    if (!p) return;
+    addPoint({ ...p, id: undefined, name: p.name + ' copia', notes: (p.notes || '') + '\nDuplicado manualmente.' });
+    closeContextMenu();
+  }
+
+  function searchNearbyPlaces() {
+    if (!placesService || !map) return alert('Primero carga Google Maps.');
+    const query = document.getElementById('placeQuery').value.trim() || 'panadería';
+    const hasArea = !!(searchAreaPolygon && areaVertices.length >= 3);
+    const center = hasArea ? getSearchAreaBounds().getCenter() : map.getCenter();
+    let radius = parseFloat(document.getElementById('searchRadius')?.value || '2500');
+    if (!isFinite(radius) || radius < 100) radius = 2500;
+
+    if (hasArea) {
+      const bounds = getSearchAreaBounds();
+      const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
+      radius = Math.min(50000, Math.max(
+        distanceMetersBetween(center, ne),
+        distanceMetersBetween(center, sw),
+        radius
+      ));
+    }
+
+    setStatus(hasArea ? 'Buscando dentro de zona...' : 'Buscando cerca del mapa...');
+    const request = { query, location: center, radius };
+    placesService.textSearch(request, (results, status, pagination) => {
+      if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
+        setStatus('Maps listo');
+        return alert('No se encontraron negocios o Places API no está habilitada.');
+      }
+      let added = 0;
+      let outside = 0;
+      results.forEach(place => {
+        if (!place.geometry || !place.geometry.location) return;
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        if (hasArea && !isPointInsideSearchArea(lat, lng)) { outside++; return; }
+        const exists = points.some(p => Math.abs(p.lat - lat) < 0.00005 && Math.abs(p.lng - lng) < 0.00005);
+        if (!exists) {
+          addPoint({
+            name: place.name || query,
+            lat,
+            lng,
+            address: place.formatted_address || '',
+            category: query,
+            status: 'detectado',
+            customColor: COLORS.detectado,
+            notes: hasArea ? 'Detectado con Places API dentro de zona delimitada' : 'Detectado con Places API'
+          }, false);
+          added++;
+        }
+      });
+      renderMarkers();
+      setStatus('Maps listo');
+      alert(`Búsqueda terminada.\nAgregados: ${added}\nFuera de la zona descartados automáticamente: ${outside}`);
+    });
+  }
+
+  function normalizeRow(row) {
+    const lower = {};
+    Object.keys(row).forEach(k => lower[k.toString().trim().toLowerCase()] = row[k]);
+    const lat = parseFloat(lower.latitud || lower.latitude || lower.lat || lower.y);
+    const lng = parseFloat(lower.longitud || lower.longitude || lower.lng || lower.lon || lower.x);
+    return {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+      name: String(lower.nombre || lower.name || lower.negocio || lower.cliente || 'Sin nombre'),
+      lat,
+      lng,
+      address: String(lower.direccion || lower.dirección || lower.address || ''),
+      phone: String(lower.telefono || lower.teléfono || lower.phone || ''),
+      category: String(lower.categoria || lower.categoría || lower.category || 'panadería'),
+      status: String(lower.estado || lower.status || 'prospecto').toLowerCase(),
+      customColor: String(lower.color || lower.customcolor || '').trim() || '',
+      notes: String(lower.notas || lower.notes || '')
+    };
+  }
+
+  function exportCSV() {
+    const headers = ['nombre','latitud','longitud','direccion','telefono','categoria','estado','color','notas'];
+    const rows = points.map(p => [p.name,p.lat,p.lng,p.address,p.phone,p.category,p.status,p.customColor || '',p.notes]);
+    const csv = [headers, ...rows].map(r => r.map(csvCell).join(',')).join('\n');
+    downloadBlob(csv, 'reporte_puntos_google_maps.csv', 'text/csv;charset=utf-8');
+  }
+
+  function exportJSON() {
+    const area = areaVertices.map(v => ({ lat: v.lat(), lng: v.lng() }));
+    downloadBlob(JSON.stringify({ points, traveledPath, searchArea: area }, null, 2), 'reporte_puntos_google_maps.json', 'application/json');
+  }
+
+  function saveLocal(showAlert = true) {
+    localStorage.setItem('gmapsExplorerPoints', JSON.stringify(points));
+    localStorage.setItem('gmapsExplorerTraveledPath', JSON.stringify(traveledPath));
+    if (areaVertices.length) {
+      localStorage.setItem('gmapsExplorerSearchArea', JSON.stringify(areaVertices.map(v => ({ lat: v.lat(), lng: v.lng() }))));
+    } else {
+      localStorage.removeItem('gmapsExplorerSearchArea');
+    }
+    if (showAlert) alert('Datos guardados en este navegador.');
+  }
+
+  function loadLocal(showAlert = true) {
+    const raw = localStorage.getItem('gmapsExplorerPoints');
+    const rawPath = localStorage.getItem('gmapsExplorerTraveledPath');
+    const rawArea = localStorage.getItem('gmapsExplorerSearchArea');
+    if (raw) {
+      points = JSON.parse(raw);
+      renderMarkers();
+      fitToPoints();
+    }
+    if (rawPath && traveledPolyline) {
+      traveledPath = JSON.parse(rawPath);
+      traveledPolyline.setPath(traveledPath);
+    }
+    if (rawArea && window.google) {
+      const arr = JSON.parse(rawArea);
+      areaVertices = arr.map(v => new google.maps.LatLng(v.lat, v.lng));
+      if (areaVertices.length >= 3) {
+        drawSearchAreaPreview();
+        updateAreaStatus(`Zona recuperada con ${areaVertices.length} vértices.`);
+      }
+    }
+    updateStats();
+    if (showAlert) alert('Datos cargados del navegador.');
+  }
+
+  function clearAllData() {
+    if (!confirm('¿Seguro que quieres borrar puntos, rutas, zona y guardado local?')) return;
+    points = [];
+    traveledPath = [];
+    localStorage.removeItem('gmapsExplorerPoints');
+    localStorage.removeItem('gmapsExplorerTraveledPath');
+    localStorage.removeItem('gmapsExplorerSearchArea');
+    clearSearchArea(false);
+    renderMarkers();
+    clearRouteLines();
+  }
+
+
+
+  function getPointsOutsideSearchArea() {
+    if (!searchAreaPolygon || !areaVertices.length || !(window.google && google.maps.geometry)) return [];
+    return points.filter(p => !isPointInsideSearchArea(p.lat, p.lng));
+  }
+
+  function countPointsOutsideSearchArea() {
+    if (!map) return alert('Primero carga Google Maps.');
+    if (!searchAreaPolygon || areaVertices.length < 3) return alert('Primero dibuja y guarda tu zona de trabajo.');
+    const outside = getPointsOutsideSearchArea();
+    const inside = points.length - outside.length;
+    updateAreaStatus(`Dentro de tu zona: ${inside} puntos. Fuera de tu zona: ${outside.length} puntos.`);
+    alert(`Revisión de zona terminada:\n\nPuntos dentro de tu ruta: ${inside}\nPuntos fuera de tu ruta: ${outside.length}\n\nSi estás seguro, presiona “Eliminar puntos fuera de mi zona”.`);
+  }
+
+  function deletePointsOutsideSearchArea() {
+    if (!map) return alert('Primero carga Google Maps.');
+    if (!searchAreaPolygon || areaVertices.length < 3) return alert('Primero dibuja y guarda tu zona de trabajo.');
+
+    const outside = getPointsOutsideSearchArea();
+    const inside = points.length - outside.length;
+
+    if (!outside.length) {
+      updateAreaStatus(`No hay puntos fuera de la zona. Se conservan ${inside} puntos.`);
+      return alert('No hay puntos fuera de tu zona de trabajo para eliminar.');
+    }
+
+    const sample = outside.slice(0, 8).map((p, i) => `${i + 1}. ${p.name}`).join('\n');
+    const more = outside.length > 8 ? `\n...y ${outside.length - 8} más.` : '';
+
+    const ok = confirm(
+      `Esta acción eliminará definitivamente ${outside.length} puntos que están FUERA de tu zona de trabajo.\n\n` +
+      `Se conservarán ${inside} puntos dentro de la zona.\n\n` +
+      `Ejemplos de puntos que se eliminarán:\n${sample}${more}\n\n` +
+      `¿Quieres continuar?`
+    );
+    if (!ok) return;
+
+    points = points.filter(p => isPointInsideSearchArea(p.lat, p.lng));
+    renderMarkers();
+    saveLocal(false);
+    updateAreaStatus(`Limpieza realizada. Se eliminaron ${outside.length} puntos fuera de tu zona. Se conservaron ${points.length} puntos dentro.`);
+    alert(`Listo. Se eliminaron ${outside.length} puntos fuera de tu zona y se guardó el cambio en el navegador.`);
+  }
+
+</script>
+</body>
+</html>
